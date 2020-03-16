@@ -1,5 +1,13 @@
 import bs4
 import requests
+import flask
+from flask import request, jsonify
+from datetime import datetime
+
+timeObj = datetime.now()
+
+app = flask.Flask(__name__)
+app.config["DEBUG"] = True
 
 def getNumber(tag):
     total = ''
@@ -28,11 +36,38 @@ totalDeaths = getNumber(cases)
 # Finding the total number of recovered cases
 divs = soupVariable.findAll("div", {"class": "maincounter-number"})
 cases = str(divs[2])
-totalRecovered = ''
+refinedCases = ''
 for i in cases:
     if i.isdigit():
-        refinedCases  = refinedCases + i
+        refinedCases = refinedCases + i
+totalRecovered = ''
+for i in refinedCases[2::]:
+    totalRecovered = totalRecovered + i
+totalRecovered = int(totalRecovered)
 
-print(f"Total number of cases of COVID-19: {totalCases}")
-print(f"Total number of deaths of COVID-19: {totalDeaths}")
-print(f"Total number of recovered cases of COVID-19: {totalRecovered}")
+stats = [
+        {"name": "totalCases",
+          "stat": totalCases,
+          "time": str(timeObj.hour - 12) + ":" + str(timeObj.minute)
+        },
+         {
+            "name": "totalDeaths",
+          "stat": totalDeaths,
+          "time": str(timeObj.hour - 12) + ":" + str(timeObj.minute)
+         },
+         {
+            "name": "totalRecovered",
+          "stat": totalRecovered,
+          "time": str(timeObj.hour - 12) + ":" + str(timeObj.minute)
+         }
+         ]
+
+@app.route('/', methods=['GET'])
+def home():
+    return "<h1>COVID-19 LIVE UPDATE</h1>"
+
+@app.route('/stats', methods=["GET"])
+def api_return():
+    return jsonify(stats)
+
+app.run()
