@@ -1,12 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import {Container, Navbar, Alert, Button} from 'react-bootstrap';
 
 function App() {
   const [show, setShow] = useState(true);
   var today = new Date();
-  const[date, setDate] = useState(today.getFullYear() + '-' +  (today.getMonth() + 1) + '-' + today.getDate());
+  const[date] = useState(today.getFullYear() + '-' +  (today.getMonth() + 1) + '-' + today.getDate());
   const[time, setTime] = useState((today.getHours() - 12) + ':' + today.getMinutes() + ':' + today.getSeconds());
+  const[stats, setStats] = useState([]);
+
+  useEffect(() => {
+    fetch('http://localhost:3000/users')
+    .then(Response => Response.json())
+    .then(res => {
+      if (res.data) {
+        setStats([...stats, ...res.data])
+      }
+    });
+  })
+
+  useEffect(() => {
+    setTime((today.getHours() - 12) + ':' + today.getMinutes() + ':' + today.getSeconds())
+  })
+
+  function renderStats() {
+      if(stats.length <= 0){
+        return <p>loading...</p>
+      }
+      else{
+        return stats.map((val, key) =>{
+          return <p key={key}>{val.statName} || {val.stat}</p>
+        });
+      }
+  }
 
   return (
     <div className="body-nav">
@@ -26,7 +52,7 @@ function App() {
           </div>                                     
       </Alert>
       <div className = "body">
-          <h2 style={{justifyContent: "center", textAlign: "center", paddingTop: "4em", color: "#45A29E", fontFamily:"'Righteous', cursive"}}>
+          <h2 style={{justifyContent: "center", textAlign: "center", paddingTop: "2em", color: "#45A29E", fontFamily:"'Righteous', cursive"}}>
             All-time Cases
           </h2>
           <h2 style={{justifyContent: "center", textAlign: "center", paddingTop: "3em", color: "#45A29E", fontFamily:"'Righteous', cursive"}}>
@@ -36,6 +62,7 @@ function App() {
             All-time recoverd
           </h2>
       </div>
+      {renderStats()}
     </div>
   );
 }
